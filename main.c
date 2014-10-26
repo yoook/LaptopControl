@@ -74,7 +74,7 @@ void set_kbd_backlight(char *mode)
     }
 
     //off
-    else if (!strcmp( mode, "o") || !strcmp( mode, "off"))
+    else if (!strcmp( mode, "n") || !strcmp( mode, "off"))
     {
         fprintf(kb, "0");
     }
@@ -93,9 +93,13 @@ void set_kbd_backlight(char *mode)
     else
     {
         printf("use -k with \n"
-        "'e' | 'endless' for endless backlight, if dark \n"
-        "'o' | 'off' for no backlight, \n"
-        "'t' | 't1' | 't2' | 't3' | 'timeout' for backlight with timout after keypress. Different timeouts can be selected with 't<n>'\n");
+        "   'e' | 'endless' for endless backlight, if dark \n"
+        "   'n' | 'off' for no backlight, \n"
+        "   't' | 't1' | 't2' | 't3' | 'timeout' for backlight with timout after keypress,\n"
+        "                       if dark. Different timeouts can be selected with 't<n>'\n"
+        "                              't1': 10s\n"
+        "                              't2': 30 s\n"
+        "                              't3' | 't' | 'timeout': 60s");
     }
 
     fclose(kb);
@@ -139,16 +143,18 @@ int main (int argc, char **argv)
     }
     if ( i == 0 )
     {
-        printf("Usage:\n"
-                "-b <n>: set battery care limiter to n percent. Allowed values: 50, 80, 100(=0)\n"
-                "-B: Print battery care limiter value. 0 == 100\n"
+        printf("Usage: LaptopControl [-b percentage] [-B] -[k mode]\n"
+                "-b <percentage>: set battery care limiter to <percentage> percent. Allowed values: 50, 80, 100(=0)\n"
+                "-B: Print battery care limiter value. 0 == 100\n "
                 "-k <mode>: set keyboard backlight status and timeout:\n"
                 "  mode: 'e' | 'endless' for endless backlight, if dark \n"
-                "        'o' | 'off' for no backlight, \n"
-                "        't' | 't1' | 't2' | 't3' | 'timeout' for backlight with timout after keypress, if dark. Different timeouts can be selected with 't<n>'\n"
-                "          't1': 10s\n"
-                "          't2': 30 s\n"
-                "          't3' | 't' | 'timeout': 60s");
+                "        'n' | 'off' for no backlight, \n"
+                "        't' | 't1' | 't2' | 't3' | 'timeout' for backlight with timout after\n"
+                "                       keypress, if dark. Different timeouts can be selected\n"
+                "                       with 't<n>'\n"
+                "                              't1': 10s\n"
+                "                              't2': 30 s\n"
+                "                                  't3' | 't' | 'timeout': 60s");
       }
 
   return 0;
