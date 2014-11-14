@@ -46,7 +46,7 @@ void set_battery_care_limiter(const char *level)
     else if (!strcmp(level, "80"))
         fprintf( bcl, "80" );
     else
-        raise_error("wrong limit. only '0' (== 100), '50', '80' and '100' is allowed", 0);
+        raise_error("wrong limit. only '0' (== 100), '50', '80' and '100' is allowed\n", 0);
 
     fclose(bcl);
 }
@@ -124,7 +124,7 @@ int main (int argc, char **argv)
             set_kbd_backlight(optarg);
             break;
         case 'B':
-            printf("Battery care limiter set to %d\n", get_battery_care_limiter());
+            printf("Battery care limiter set to %d%%\n", (get_battery_care_limiter()==0) ? 100 : get_battery_care_limiter());
             break;
         case 'b':
             set_battery_care_limiter(optarg);
