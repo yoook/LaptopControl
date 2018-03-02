@@ -5,8 +5,8 @@ all: LaptopControl
 #GP_CFLAGS = `pkg-config --cflags libgphoto2`
 #CFLAGS    =  -Wall $(GP_CFLAGS)
 #LFLAGS    = -Wall $(GP_LIBS)
-CFLAGS = -Wall
-LFLAGS = -Wall
+CFLAGS = -Wall -Wextra
+LFLAGS = -Wall -Wextra
 
 
 LaptopControl: main.o
