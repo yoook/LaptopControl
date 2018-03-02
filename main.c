@@ -142,7 +142,8 @@ void set_cpu_power_mode(const char *mode){
 
 void print_usage()
 {
-    printf("Usage: LaptopControl [-b <percentage>] [-B] -[k <mode>] [-p <mode>] [-P]\n"
+    printf("Usage: LaptopControl [-s] [-b <percentage>] [-B] -[k <mode>] [-p <mode>] [-P]\n"
+            "  -s: the output of -B and -P option are shortened\n"
             "  -b <percentage>: set battery care limiter to <percentage> percent. Allowed values: 50, 80, 100(=0)\n"
             "  -B: Print battery care limiter value. 0 == 100\n"
             "  -k <mode>: set keyboard backlight status and timeout:\n"
@@ -165,27 +166,45 @@ int main (int argc, char **argv)
 {
     int c;
     int i = 0;
+    int short_output=0;
 
 
     opterr = 0;
-    while ((c = getopt (argc, argv, "k:Bb:Pp:")) != -1)
+    while ((c = getopt (argc, argv, "sk:Bb:Pp:")) != -1)
     {
         i = 1;
         switch (c)
         {
+        case 's':
+            short_output = 1;
+            break;
         case 'k':
             set_kbd_backlight(optarg);
             break;
         case 'B':
-            printf("Battery care limiter set to %d%%.\n", (get_battery_care_limiter()==0) ? 100 : get_battery_care_limiter());
+            if (short_output)
+            {
+                printf("%d", (get_battery_care_limiter()==0) ? 100 : get_battery_care_limiter());
+            }
+            else
+            {
+                printf("Battery care limiter is set to %d%%.\n", (get_battery_care_limiter()==0) ? 100 : get_battery_care_limiter());
+            }
             break;
         case 'b':
             set_battery_care_limiter(optarg);
             break;
         case 'P':
-            printf("CPU power mode is set to ");
-            print_cpu_power_mode();
-            printf(".\n");
+            if(short_output)
+            {
+                print_cpu_power_mode();
+            }
+            else
+            {
+                printf("CPU power mode is set to ");
+                print_cpu_power_mode();
+                printf(".\n");
+            }
             break;
         case 'p':
             set_cpu_power_mode(optarg);
