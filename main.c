@@ -3,7 +3,7 @@
 #include <unistd.h>     /* for getopt */
 #include <string.h>     /* for strncmp */
 
-#include <ctype.h>      /* wofür? */
+#include <ctype.h>      /* what for? */
 
 
 
@@ -18,6 +18,36 @@ void raise_error(const char *error_message, int exit_now)
 {
     fprintf(stderr, "%s", error_message );
     if (exit_now)  exit(EXIT_FAILURE);
+}
+
+char * get_thermal_control()
+{
+    FILE *fp = fopen(SYSPATH "/thermal_control", "r");
+    if (fp == NULL) raise_error("file error", 1);
+    static char control[12];
+    fscanf( fp, "%11s", control);
+    fclose(fp);
+
+    return control;
+}
+
+void set_thermal_control(const char *control)
+{
+    FILE *tc = fopen(SYSPATH "/thermal_control", "w");
+    if (tc == NULL)
+        raise_error("file error", 1);
+
+
+    if (!strcmp(control, "b") || !strcmp(control, "balanced"))
+        fprintf( tc, "balanced" );
+    else if (!strcmp(control, "s") || !strcmp(control, "silent"))
+        fprintf( tc, "silent" );
+    else if (!strcmp(control, "p") || !strcmp(control, "performance"))
+        fprintf( tc, "performance" );
+    else
+        raise_error("wrong thermal control. only 'b': 'balanced', 's': 'silent', and 'p': 'performance' are allowed.\n", 0);
+
+    fclose(tc);
 }
 
 int get_battery_care_limiter()
@@ -107,44 +137,15 @@ void set_kbd_backlight(char *mode)
 
 }
 
-void print_cpu_power_mode()
-{
-    FILE *fp = fopen(SYSPATH "/thermal_control", "r");
-    if (fp == NULL) raise_error("file error", 1);
-    char buffer[20];
-    fscanf( fp, "%19s", buffer);
-    printf("%.19s", buffer);
-    fclose(fp);
-}
-
-void set_cpu_power_mode(const char *mode){
-    FILE *fp = fopen(SYSPATH "/thermal_control", "w");
-    if (fp == NULL) raise_error("file error", 1);
-
-    if (!strcmp(mode, "s") || !strcmp(mode, "silent"))
-        fprintf(fp, "silent");
-    else if (!strcmp(mode, "b") || !strcmp(mode, "balanced"))
-        fprintf(fp, "balanced");
-    else if (!strcmp(mode, "p") || !strcmp(mode, "performance"))
-        fprintf(fp, "performance");
-
-    else
-    {
-        printf("use -p with \n"
-         "  's' | 'silent'\n"
-         "  'b' | 'balanced'\n"
-         "  'p' | 'performance'\n");
-    }
-
-    fclose(fp);
-}
-
-
-void print_usage()
-{
-    printf("Usage: LaptopControl [-b <percentage>] [-B] -[k <mode>] [-p <mode>] [-P]\n"
+void print_usage(){
+    printf("Usage: LaptopControl [-b percentage] [-B] -[k mode]\n"
             "  -b <percentage>: set battery care limiter to <percentage> percent. Allowed values: 50, 80, 100(=0)\n"
             "  -B: Print battery care limiter value. 0 == 100\n"
+            "  -t <mode>: set thermal control (fan's speed).\n"
+            "    mode: 's' | 'silent'\n"
+            "          'b' | 'balanced'\n"
+            "          'p' | 'performance'\n"
+            "  -T: Print current thermal control (fan's speed).\n"
             "  -k <mode>: set keyboard backlight status and timeout:\n"
             "    mode: 'e' | 'endless' for endless backlight, if dark \n"
             "          'n' | 'off' for no backlight, \n"
@@ -153,12 +154,7 @@ void print_usage()
             "                         with 't<n>'\n"
             "                                't1': 10s\n"
             "                                't2': 30 s\n"
-            "                                't3' | 't' | 'timeout': 60s\n"
-            "  -p <mode>: set CPU power mode:\n"
-            "    mode: 's' | 'silent'\n"
-            "          'b' | 'balanced'\n"
-            "          'p' | 'performance'\n"
-            "  -P: Print CPU power mode\n" );
+            "                                't3' | 't' | 'timeout': 60s\n");
 }
 
 int main (int argc, char **argv)
@@ -168,7 +164,7 @@ int main (int argc, char **argv)
 
 
     opterr = 0;
-    while ((c = getopt (argc, argv, "k:Bb:Pp:")) != -1)
+    while ((c = getopt (argc, argv, "k:Bb:Tt:")) != -1)
     {
         i = 1;
         switch (c)
@@ -182,16 +178,14 @@ int main (int argc, char **argv)
         case 'b':
             set_battery_care_limiter(optarg);
             break;
-        case 'P':
-            printf("CPU power mode is set to ");
-            print_cpu_power_mode();
-            printf(".\n");
+        case 'T':
+            printf("Thermal control is set to %s.\n", get_thermal_control());
             break;
-        case 'p':
-            set_cpu_power_mode(optarg);
+        case 't':
+            set_thermal_control(optarg);
             break;
         case '?':
-            if (optopt == 'b' || optopt == 'k' || optopt == 'p')
+            if (optopt == 'b' || optopt == 'k' || optopt == 't')
                 fprintf (stderr, "Option -%c requires an argument.\n", optopt);
             else if (isprint (optopt))
                 fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -205,7 +199,7 @@ int main (int argc, char **argv)
     if ( i == 0 )
     {
         print_usage();
-      }
+    }
 
   return 0;
 }
