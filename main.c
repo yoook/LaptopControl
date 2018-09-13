@@ -50,6 +50,35 @@ void set_thermal_control(const char *control)
     fclose(tc);
 }
 
+int get_lid_resume()
+{
+    FILE *fp = fopen(SYSPATH "/lid_resume_S5", "r");
+    if (fp == NULL) raise_error("file error", 1);
+
+    int i = -1;
+    fscanf( fp, "%d", &i);
+
+    fclose(fp);
+    return i;
+}
+
+void set_lid_resume(const char* state)
+{
+    FILE *lr = fopen(SYSPATH "/lid_resume_S5", "w");
+    if (lr == NULL)
+        raise_error("file error", 1);
+
+
+    if (!strcmp(state, "0"))
+        fprintf( lr, "0"  );
+    else if (!strcmp(state, "1"))
+        fprintf( lr, "1" );
+    else
+        raise_error("wrong argument. only '0' and '1' is supported",0 );
+
+    fclose(lr);
+}
+
 int get_battery_care_limiter()
 {
     FILE *fp = fopen(SYSPATH "/battery_care_limiter", "r");
@@ -138,24 +167,27 @@ void set_kbd_backlight(char *mode)
 }
 
 void print_usage(){
-    printf("Usage: LaptopControl [-s] [-b <percentage>] [-B] -[k <mode>] [-t <mode>] [-T]\n"
+    printf("Usage: LaptopControl [-s] [-b <percentage>] [-B] -[k <mode>] [-t <mode>] [-T] [-r <state>] -R\n"
            "  -s: the output of -B and -T option are shortened\n"
            "  -b <percentage>: set battery care limiter to <percentage> percent. Allowed values: 50, 80, 100(=0)\n"
-            "  -B: Print battery care limiter value. 0 == 100\n"
-            "  -t <mode>: set thermal control (fan's speed).\n"
-            "    mode: 's' | 'silent'\n"
-            "          'b' | 'balanced'\n"
-            "          'p' | 'performance'\n"
-            "  -T: Print current thermal control (fan's speed).\n"
-            "  -k <mode>: set keyboard backlight status and timeout:\n"
-            "    mode: 'e' | 'endless' for endless backlight, if dark \n"
-            "          'n' | 'off' for no backlight, \n"
-            "          't' | 't1' | 't2' | 't3' | 'timeout' for backlight with timout after\n"
-            "                         keypress, if dark. Different timeouts can be selected\n"
-            "                         with 't<n>'\n"
-            "                                't1': 10s\n"
-            "                                't2': 30 s\n"
-            "                                't3' | 't' | 'timeout': 60s\n");
+           "  -B: Print battery care limiter value. 0 == 100\n"
+           "  -t <mode>: set thermal control (fan's speed).\n"
+           "    mode: 's' | 'silent'\n"
+           "          'b' | 'balanced'\n"
+           "          'p' | 'performance'\n"
+           "  -T: Print current thermal control (fan's speed).\n"
+           "  -k <mode>: set keyboard backlight status and timeout:\n"
+           "    mode: 'e' | 'endless' for endless backlight, if dark \n"
+           "          'n' | 'off' for no backlight, \n"
+           "          't' | 't1' | 't2' | 't3' | 'timeout' for backlight with timout after\n"
+           "                         keypress, if dark. Different timeouts can be selected\n"
+           "                         with 't<n>'\n"
+           "                                't1': 10s\n"
+           "                                't2': 30 s\n"
+           "                                't3' | 't' | 'timeout': 60s\n"
+           "  -r <state>: set resume from standby by lid opening\n"
+           "    state: '0' off, '1' on\n"
+           "  -R: Print current setting regarding resume on lid opening\n");
 }
 
 int main (int argc, char **argv)
@@ -166,7 +198,7 @@ int main (int argc, char **argv)
 
 
     opterr = 0;
-    while ((c = getopt (argc, argv, "sk:Bb:Tt:")) != -1)
+    while ((c = getopt (argc, argv, "sk:Bb:Tt:Rr:")) != -1)
     {
         i = 1;
         switch (c)
@@ -202,6 +234,12 @@ int main (int argc, char **argv)
             break;
         case 't':
             set_thermal_control(optarg);
+            break;
+        case 'R':
+            printf("%d", get_lid_resume());
+            break;
+        case 'r':
+            set_lid_resume(optarg);
             break;
         case '?':
             if (optopt == 'b' || optopt == 'k' || optopt == 't')
